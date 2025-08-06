@@ -1,30 +1,27 @@
 import os
-from openai import OpenAI
+from groq import Groq
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
+# Initialize Groq client
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-# Initialize Groq API client
-client = OpenAI(
-    api_key=os.getenv("GROQ_API_KEY"),
-    base_url="https://api.groq.com/openai/v1",
-)
+def get_bot_response(user_input):
+    prompt = f"""
+You are an Agriculture Expert Assistant. Answer user queries about crops, soil health,
+fertilizers, pest control, irrigation, and sustainable farming tips in simple and helpful language.
 
-def get_agriculture_reply(user_input):
+Question: {user_input}
     """
-    Send user query to Groq API and return agriculture-focused response.
-    """
+
     response = client.chat.completions.create(
-        model="llama3-70b-8192",
+        model="llama3-8b-8192",  # Groq model
         messages=[
-            {"role": "system", "content": (
-                "You are an Agriculture Assistant Bot. "
-                "Provide expert advice about farming, crops, soil health, irrigation, pest control, "
-                "weather forecasts, and sustainable agriculture practices. "
-                "Avoid unrelated topics."
-            )},
-            {"role": "user", "content": user_input}
-        ]
+            {"role": "system", "content": "You are a helpful agriculture assistant."},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=300,
+        temperature=0.7
     )
-    return response.choices[0].message.content
+
+    return response.choices[0].message.content.strip()
